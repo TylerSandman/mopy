@@ -1,6 +1,6 @@
 """This module contains a representation of a state of the game Nim"""
 
-from state import State
+from mopy.state import State
 
 
 class NimState(State):

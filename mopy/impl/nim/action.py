@@ -1,6 +1,6 @@
 """This module contains a representation of an action in the game Nim."""
 
-from action import Action
+from mopy.action import Action
 
 
 class NimAction(Action):

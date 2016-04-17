@@ -1,9 +1,9 @@
 """This module contains a concrete implementation of the game Nim."""
 
 from random import choice
-from game import Game
-from implementations.nim.nim_state import NimState
-from implementations.nim.nim_action import NimAction
+from mopy.game import Game
+from mopy.impl.nim.state import NimState
+from mopy.impl.nim.action import NimAction
 
 
 class NimGame(Game):

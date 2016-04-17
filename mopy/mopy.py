@@ -9,8 +9,8 @@ See Browne et al(2012) for an in-depth overview of MCTS methods:
 http://www.cameronius.com/cv/mcts-survey-master.pdf
 """
 
-from mctree import MCTree
-from policies import backup, selection, simulation
+from mopy.mctree import MCTree
+from mopy.policies import backup, selection, simulation
 
 
 class Mopy(object):
