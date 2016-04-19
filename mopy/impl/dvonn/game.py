@@ -17,7 +17,9 @@ class DvonnGame(Game):
 
     def new_game(self):
         """Returns a DvonnState right before White's first move."""
-        return DvonnState()
+        s = DvonnState()
+        s.legal_actions = self._calculate_legal_actions(s)
+        return s
 
     def do_action(self, state, action):
         """Place or move a ring or ring stack on the board."""
@@ -25,17 +27,11 @@ class DvonnGame(Game):
             self._do_place_action(state, action.end)
         elif action.type == DvonnAction.Type.MOVE:
             self._do_move_action(state, action.end, action.start)
+        state.legal_actions = self._calculate_legal_actions(state)
 
     def is_over(self, state):
         """Returns True if and only if neither player has no legal actions."""
-        p1, p2 = state.players[0], state.players[1]
-
-        # We're in initial ring placement phase
-        if p1.num_player_rings > 0 or p2.num_player_rings > 0:
-            return False
-        # Neither player can move
-        all_actions = self.get_legal_actions(state)
-        return len(all_actions) == 0
+        return len(state.legal_actions) == 0
 
     def get_result(self, state):
         """The winner of Dvonn is whoever owns the most rings at the end."""
@@ -49,6 +45,15 @@ class DvonnGame(Game):
         return 1
 
     def get_legal_actions(self, state):
+        """
+        Get legal actions for `state`.
+        Since checking if a game is over requires checking if any legal
+        actions are available, we offload the responsibility to the state
+        and update it automatically after every action to improve efficiency.
+        """
+        return state.legal_actions
+
+    def _calculate_legal_actions(self, state):
         """
         Get all legal actions in the current board state.
         Note that often one player will not be able to move, even

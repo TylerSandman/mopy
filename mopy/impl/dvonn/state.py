@@ -221,5 +221,6 @@ class DvonnState(State):
 
     def __init__(self, current_player=0):
         super().__init__(current_player)
+        self.legal_actions = []
         self.board = Board()
         self.players = [Player(0), Player(1)]

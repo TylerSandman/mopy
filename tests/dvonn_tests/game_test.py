@@ -16,7 +16,7 @@ def new_state(game):
 
 
 @pytest.fixture
-def full_state(new_state):
+def full_state(game, new_state):
     """Represents the state directly after white places his last ring."""
     full_state = deepcopy(new_state)
     grid = full_state.board.grid
@@ -41,12 +41,12 @@ def full_state(new_state):
     grid[3][10].owner = Cell.Owner.NULL
     grid[4][9].owner = Cell.Owner.NULL
     grid[4][10].owner = Cell.Owner.NULL
-
+    full_state.legal_actions = game._calculate_legal_actions(full_state)
     return full_state
 
 
 @pytest.fixture
-def completed_state(new_state):
+def completed_state(game, new_state):
     """Represents an endgame state where neither player can move."""
     completed_state = deepcopy(new_state)
 
@@ -70,6 +70,8 @@ def completed_state(new_state):
     grid[2][6].owner = Cell.Owner.WHITE
     grid[2][6].num_rings = 5
     grid[2][6].has_dvonn_ring = False
+    actions = game._calculate_legal_actions(completed_state)
+    completed_state.legal_actions = actions
 
     return completed_state
 
@@ -140,7 +142,7 @@ def test_legal_first_actions(game, new_state):
 def test_legal_intermediate_actions(game, full_state):
     all_actions = game.get_legal_actions(full_state)
     full_state.current_player = (full_state.current_player + 1) % 2
-    all_actions += game.get_legal_actions(full_state)
+    all_actions += game._calculate_legal_actions(full_state)
     assert not any(a.type == DvonnAction.Type.PLACE for a in all_actions)
 
     # Yes, I hand counted this.
