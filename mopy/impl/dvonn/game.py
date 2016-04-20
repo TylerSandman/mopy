@@ -167,5 +167,5 @@ class DvonnGame(Game):
         next_player = state.players[(state.current_player + 1) % 2]
         # The player who started the first phase also starts the second phase.
         # Therefore, white moves immediately after he places his last ring.
-        if player.num_player_rings > 0 and next_player.num_player_rings > 0:
+        if player.num_player_rings > 0 or next_player.num_player_rings > 0:
             state.current_player = (state.current_player + 1) % 2
