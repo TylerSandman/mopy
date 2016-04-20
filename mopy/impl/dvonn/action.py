@@ -32,6 +32,9 @@ class DvonnAction(Action):
         eq_start = self.start == other.start
         return (eq_type and eq_end and eq_start)
 
+    def __hash__(self):
+        return hash((self.type, self.end, self.start))
+
     def __repr__(self):
         if self.type == DvonnAction.Type.PLACE:
             return self.type.name + " at " + str(self.end)

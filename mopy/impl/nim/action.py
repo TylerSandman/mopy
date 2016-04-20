@@ -23,6 +23,9 @@ class NimAction(Action):
         eq_num = self.num_taken == other.num_taken
         return eq_i and eq_num
 
+    def __hash__(self):
+        return hash((self.heap_num, self.num_taken))
+
     def __ne__(self, other):
         return not self.__eq__(self, other)
 

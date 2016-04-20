@@ -19,3 +19,7 @@ class Action(object):
     @abstractmethod
     def __eq__(self, other):
         pass    # Need to define equality to compare action lists
+
+    @abstractmethod
+    def __hash__(self, other):
+        pass    # Need hashing for efficient action lookup
