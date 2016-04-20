@@ -3,6 +3,7 @@
 from copy import deepcopy
 from random import choice
 from operator import attrgetter
+from collections import defaultdict
 
 
 class MCTree(object):
@@ -122,6 +123,36 @@ class MCTree(object):
         """
         best_node = max(self.children, key=attrgetter("win_ratio"))
         return best_node.action
+
+    def combine_root_actions(self, other):
+        """
+        Combines actions of direct children of self and other.
+
+        Args:
+            other (MCTree): The tree whose actions we're merging into
+                our current tree.
+
+        Notes:
+            This only merges direct children of self and other, since when
+            performing action selection that's all we care about. If an action
+            isn't a child of our original tree, we add it. Otherwise, we add
+            the win ratios together. This is mainly used at the last step
+            of parallel search when we have to merge all simulation results.
+        """
+        won_count_map, total_count_map = defaultdict(int), defaultdict(int)
+        original_actions = set()
+        for c in self.children:
+            won_count_map[c.action] += c.won_games
+            total_count_map[c.action] += c.total_games
+            original_actions.add(c.action)
+        for c in other.children:
+            if c.action not in original_actions:
+                self.children.append(MCTree(self.game, self.state, c.action))
+            won_count_map[c.action] += c.won_games
+            total_count_map[c.action] += c.total_games
+        for c in self.children:
+            won, total = won_count_map[c.action], total_count_map[c.action]
+            c.won_games, c.total_games = won, total
 
     def _expand(self):
         """Expansion phase for MCTS for nodes with unexplored actions."""

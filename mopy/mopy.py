@@ -9,6 +9,7 @@ See Browne et al(2012) for an in-depth overview of MCTS methods:
 http://www.cameronius.com/cv/mcts-survey-master.pdf
 """
 
+from multiprocessing import Process, Manager
 from mopy.mctree import MCTree
 from mopy.policies import backup, selection, simulation
 
@@ -62,9 +63,50 @@ class Mopy(object):
             State abstract base classes.
         """
         root = MCTree(game, state)
-        for n in range(num_sims):
+        for _ in range(num_sims):
             selected_node = root.select(self.sel_policy)
             result = selected_node.simulate_game(self.sim_policy)
             selected_node.backup_result(result, self.backup_policy)
 
         return root.get_best_action()
+
+    def parallel_search(self, game, state, num_sims=1000, num_workers=4):
+        """
+        Searches for the best action of `game` from `state` in parallel.
+
+        We split up MCTS evenly amonst `num_workers` processes. Each worker
+        runs an equal fraction of `num_sims`. Once every worker has ran their
+        MCTS individually, all the distinct tree roots are combined into
+        a final tree which we then choose the best action from.
+
+        Based off root parallelization found in Chaslot et al:
+        dke.maastrichtuniversity.nl/m.winands/documents/multithreadedMCTS2.pdf
+
+        Best results are usually found when `num_workers` is equal to the
+        number of CPU cores available. That is, if you are using 4 cores,
+        8 workers will show little to no improvement from 4 workers.
+        """
+        manager = Manager()
+        root_list = manager.list()
+        procs = []
+        sims_per_search = num_sims // num_workers
+        for _ in range(num_workers):
+            p = Process(target=self._search_job,
+                        args=(root_list, game, state, sims_per_search,))
+            procs.append(p)
+            p.start()
+        for p in procs:
+            p.join()
+
+        first_root = root_list[0]
+        for i in range(1, len(root_list)):
+            first_root.combine_root_actions(root_list[i])
+        return first_root.get_best_action()
+
+    def _search_job(self, root_list, game, state, num_sims):
+        root = MCTree(game, state)
+        for _ in range(num_sims):
+            selected_node = root.select(self.sel_policy)
+            result = selected_node.simulate_game(self.sim_policy)
+            selected_node.backup_result(result, self.backup_policy)
+        root_list.append(root)
