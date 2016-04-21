@@ -132,13 +132,15 @@ class DvonnGame(Game):
         end_cell = state.board.grid[e_x][e_y]
 
         # The stack on the second cell grows
-        end_cell.num_rings += start_cell.num_rings
+        end_cell.num_white_rings += start_cell.num_white_rings
+        end_cell.num_black_rings += start_cell.num_black_rings
         end_cell.owner = start_cell.owner
         if start_cell.has_dvonn_ring:
             end_cell.has_dvonn_ring = True
 
         # All rings move off the first cell
-        start_cell.num_rings = 0
+        start_cell.num_white_rings = 0
+        start_cell.num_black_rings = 0
         start_cell.owner = Cell.Owner.EMPTY
         start_cell.has_dvonn_ring = False
 
@@ -150,7 +152,7 @@ class DvonnGame(Game):
     def _do_place_action(self, state, pos):
         x, y = pos
         cell = state.board.grid[x][y]
-        cell.num_rings = 1
+        cell.num_white_rings = 1
         cell.owner = Cell.Owner.WHITE
         player = state.players[state.current_player]
 
@@ -162,6 +164,8 @@ class DvonnGame(Game):
         else:
             player.num_player_rings -= 1
             if state.current_player == 1:
+                cell.num_white_rings = 0
+                cell.num_black_rings = 1
                 cell.owner = Cell.Owner.BLACK
 
         next_player = state.players[(state.current_player + 1) % 2]

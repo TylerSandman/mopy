@@ -54,9 +54,17 @@ class Cell(object):
         """
         self.r = r
         self.c = c
-        self.num_rings = 0
+        self.num_white_rings = 0
+        self.num_black_rings = 0
         self.owner = Cell.Owner.EMPTY
         self.has_dvonn_ring = False
+
+    @property
+    def num_rings(self):
+        tot = self.num_white_rings + self.num_black_rings
+        if self.has_dvonn_ring:
+            tot += 1
+        return tot
 
     def __repr__(self):
         return str((self.r, self.c))
@@ -129,6 +137,9 @@ class Board(object):
         self.grid[4][9].owner = Cell.Owner.NULL
         self.grid[4][10].owner = Cell.Owner.NULL
 
+        self.removed_white_rings = 0
+        self.removed_black_rings = 0
+
     def is_on_board(self, x, y):
         """Returns True if and only if (x, y) is a valid grid board pos."""
         num_rows = len(self.grid)
@@ -192,8 +203,11 @@ class Board(object):
 
     def _remove_component(self, x, y):
         cell = self.grid[x][y]
+        self.removed_white_rings += cell.num_white_rings
+        self.removed_black_rings += cell.num_black_rings
         cell.owner = Cell.Owner.EMPTY
-        cell.num_rings = 0
+        cell.num_white_rings = 0
+        cell.num_black_rings = 0
         cell.has_dvonn_ring = False
         neighbours = cell.grid_neighbour_positions()
 

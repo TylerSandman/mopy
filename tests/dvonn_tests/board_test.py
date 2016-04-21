@@ -20,8 +20,11 @@ def full_state(new_state):
     # Populate the board
     for x, row in enumerate(grid):
         for y, cell in enumerate(row):
-            cell.num_rings = 1
             cell.owner = Cell.Owner.WHITE if y % 2 == 0 else Cell.Owner.BLACK
+            if cell.is_owned_by(y % 2):
+                cell.num_white_rings = 1
+            else:
+                cell.num_black_rings = 1
 
     # Place the red rings
     for x, y in [(2, 0), (3, 5), (0, 9)]:
@@ -54,7 +57,8 @@ def test_ring_removal(full_state):
         visited = [[False for cell in row] for row in board.grid]
         assert not board._is_isolated_component(x, y, visited)
         cell = board.grid[x][y]
-        cell.num_rings = 0
+        cell.num_white_rings = 0
+        cell.num_black_rings = 0
         cell.owner = Cell.Owner.EMPTY
         cell.has_dvonn_ring = False
 
@@ -65,7 +69,8 @@ def test_ring_removal(full_state):
     for x, y in [(1, 10), (2, 9), (3, 8), (4, 7), (2, 10), (3, 9), (4, 8)]:
         cell = board.grid[x][y]
         assert cell.owner == Cell.Owner.EMPTY
-        assert cell.num_rings == 0
+        assert cell.num_white_rings == 0
+        assert cell.num_black_rings == 0
         assert not cell.has_dvonn_ring
 
 

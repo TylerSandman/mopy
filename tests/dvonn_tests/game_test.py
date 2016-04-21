@@ -23,8 +23,11 @@ def full_state(game, new_state):
     # Populate the board
     for x, row in enumerate(grid):
         for y, cell in enumerate(row):
-            cell.num_rings = 1
             cell.owner = Cell.Owner.WHITE if y % 2 == 0 else Cell.Owner.BLACK
+            if cell.is_owned_by(y % 2):
+                cell.num_white_rings = 1
+            else:
+                cell.num_black_rings = 1
 
     # Place the red rings
     for x, y in [(2, 0), (3, 5), (0, 9)]:
@@ -56,19 +59,19 @@ def completed_state(game, new_state):
 
     grid = completed_state.board.grid
     grid[2][0].owner = Cell.Owner.BLACK
-    grid[2][0].num_rings = 4
+    grid[2][0].num_black_rings = 3
     grid[2][0].has_dvonn_ring = True
 
     grid[1][7].owner = Cell.Owner.BLACK
-    grid[1][7].num_rings = 9
+    grid[1][7].num_black_rings = 8
     grid[1][7].has_dvonn_ring = True
 
     grid[2][6].owner = Cell.Owner.WHITE
-    grid[2][6].num_rings = 6
+    grid[2][6].num_white_rings = 5
     grid[2][6].has_dvonn_ring = True
 
     grid[2][6].owner = Cell.Owner.WHITE
-    grid[2][6].num_rings = 5
+    grid[2][6].num_white_rings = 5
     grid[2][6].has_dvonn_ring = False
     actions = game._calculate_legal_actions(completed_state)
     completed_state.legal_actions = actions
@@ -89,13 +92,16 @@ def test_place_actions(game, new_state, positions):
         if i > 2:
             if i % 2 == 0:
                 assert grid[x][y].owner == Cell.Owner.WHITE
+                assert grid[x][y].num_white_rings == 1
+                assert grid[x][y].num_black_rings == 0
             else:
                 assert grid[x][y].owner == Cell.Owner.BLACK
+                assert grid[x][y].num_black_rings == 1
+                assert grid[x][y].num_white_rings == 0
         # Initial Dvonn ring placement phase
         else:
             assert grid[x][y].owner == Cell.Owner.RED
             assert grid[x][y].has_dvonn_ring
-        assert grid[x][y].num_rings == 1
 
     num_placements = len(positions)
     num_player_placements = num_placements - 3
@@ -117,11 +123,15 @@ def test_place_actions(game, new_state, positions):
 def test_move_actions(game, full_state, end, start):
     grid = full_state.board.grid
     (s_x, s_y), (e_x, e_y) = start, end
+    white_rings = grid[e_x][e_y].num_white_rings+grid[s_x][s_y].num_white_rings
+    black_rings = grid[e_x][e_y].num_black_rings+grid[s_x][s_y].num_black_rings
     game.do_action(full_state, DvonnAction(DvonnAction.Type.MOVE, end, start))
-    assert grid[s_x][s_y].num_rings == 0
+    assert grid[s_x][s_y].num_white_rings == 0
+    assert grid[s_x][s_y].num_black_rings == 0
     assert grid[s_x][s_y].owner == Cell.Owner.EMPTY
     assert not grid[s_x][s_y].has_dvonn_ring
-    assert grid[e_x][e_y].num_rings == 2
+    assert grid[e_x][e_y].num_white_rings == white_rings
+    assert grid[e_x][e_y].num_black_rings == black_rings
     assert grid[e_x][e_y].owner == Cell.Owner.WHITE
 
 
