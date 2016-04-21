@@ -158,6 +158,7 @@ class DvonnGame(Game):
 
         # Initial Dvonn ring placement phase
         if player.num_dvonn_rings > 0:
+            cell.num_white_rings = 0
             player.num_dvonn_rings -= 1
             cell.owner = Cell.Owner.RED
             cell.has_dvonn_ring = True
