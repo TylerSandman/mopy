@@ -12,6 +12,7 @@ http://www.cameronius.com/cv/mcts-survey-master.pdf
 from multiprocessing import Process, Manager
 from mopy.mctree import MCTree
 from mopy.policies import backup, selection, simulation
+from time import clock
 
 
 class Mopy(object):
@@ -42,7 +43,7 @@ class Mopy(object):
         self.sim_policy = sim_policy
         self.backup_policy = backup_policy
 
-    def search(self, game, state, num_sims=1000):
+    def search(self, game, state, search_time=0.5):
         """
         Search for the best action of `game` from `state`.
 
@@ -51,8 +52,8 @@ class Mopy(object):
 
             state (State): The current state of `game`.
 
-            num_sims (Optional[int]): The number of simulations to run in
-            `state` before returning the current best action. Default to 1000.
+            num_sims (Optional[float]): How long to run the MCTS for in
+                seconds. Defaults to half a second (0.5).
 
         Returns:
             Action that represents the action with the maximum reward
@@ -63,21 +64,24 @@ class Mopy(object):
             State abstract base classes.
         """
         root = MCTree(game, state)
-        for _ in range(num_sims):
+        start_time = clock()
+        while (clock() - start_time) < search_time:
             selected_node = root.select(self.sel_policy)
             result = selected_node.simulate_game(self.sim_policy)
             selected_node.backup_result(result, self.backup_policy)
 
         return root.get_best_action()
 
-    def parallel_search(self, game, state, num_sims=1000, num_workers=4):
+    def parallel_search(self, game, state, search_time=0.5, num_workers=4):
         """
         Searches for the best action of `game` from `state` in parallel.
 
         We split up MCTS evenly amonst `num_workers` processes. Each worker
         runs an equal fraction of `num_sims`. Once every worker has ran their
         MCTS individually, all the distinct tree roots are combined into
-        a final tree which we then choose the best action from.
+        a final tree which we then choose the best action from. Note that
+        `search_time` is total seconds for the search, not the search time
+        per worker.
 
         Based off root parallelization found in Chaslot et al:
         dke.maastrichtuniversity.nl/m.winands/documents/multithreadedMCTS2.pdf
@@ -89,10 +93,10 @@ class Mopy(object):
         manager = Manager()
         root_list = manager.list()
         procs = []
-        sims_per_search = num_sims // num_workers
+        worker_search_time = search_time / num_workers
         for _ in range(num_workers):
             p = Process(target=self._search_job,
-                        args=(root_list, game, state, sims_per_search,))
+                        args=(root_list, game, state, worker_search_time,))
             procs.append(p)
             p.start()
         for p in procs:
@@ -103,9 +107,10 @@ class Mopy(object):
             first_root.combine_root_actions(root_list[i])
         return first_root.get_best_action()
 
-    def _search_job(self, root_list, game, state, num_sims):
+    def _search_job(self, root_list, game, state, search_time):
         root = MCTree(game, state)
-        for _ in range(num_sims):
+        start_time = clock()
+        while (clock() - start_time) < search_time:
             selected_node = root.select(self.sel_policy)
             result = selected_node.simulate_game(self.sim_policy)
             selected_node.backup_result(result, self.backup_policy)
