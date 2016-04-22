@@ -9,6 +9,8 @@ on how policies are incorporated.
 """
 
 from math import log, sqrt
+from random import random, choice
+from operator import attrgetter
 
 
 def _get_UCT_val(node, explore_rate):
@@ -42,3 +44,34 @@ def UCT(node, explore_rate=0.2):
     scores = [_get_UCT_val(c, explore_rate) for c in node.children]
     selected_i = scores.index(max(scores))
     return node.children[selected_i]
+
+
+def epsilon_greedy(node, explore_rate=0.2, exploit_rate=0.2):
+    """
+    Policy to select children nodes based on greedy epsilon criteria.
+
+    Args:
+        node (MCTree): The current node during selection phase of MCTS.
+        explore_rate (Optional[float]): Constant representing the exploration
+            rate for greedy epsilon. Higher values will tend to choose random
+            nodes more often.
+        exploit_rate (Optional[float]): Constant representing the exploitation
+            rate for greedy epsilon. LOWER values will tend to bias the
+            selection toward exploiting the best nodes more often.
+
+    Returns:
+        MCTree representing the child of `node` selected by greedy epsilon.
+
+    Notes:
+        See Theorem 3 contained in:
+        http://homes.di.unimi.it/~cesabian/Pubblicazioni/ml-02.pdf
+        for more information regarding the greedy epsilon policy.
+    """
+    node_visits = node.total_games
+    num_actions = len(node.children)
+    eps = min(1, (explore_rate*num_actions) / ((exploit_rate**2)*node_visits))
+
+    best_node = max(node.children, key=attrgetter("win_ratio"))
+    if random() < eps:
+        return choice(node.children)
+    return best_node
