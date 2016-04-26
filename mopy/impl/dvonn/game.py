@@ -134,15 +134,14 @@ class DvonnGame(Game):
         # The stack on the second cell grows
         end_cell.num_white_rings += start_cell.num_white_rings
         end_cell.num_black_rings += start_cell.num_black_rings
+        end_cell.num_dvonn_rings += start_cell.num_dvonn_rings
         end_cell.owner = start_cell.owner
-        if start_cell.has_dvonn_ring:
-            end_cell.has_dvonn_ring = True
 
         # All rings move off the first cell
         start_cell.num_white_rings = 0
         start_cell.num_black_rings = 0
+        start_cell.num_dvonn_rings = 0
         start_cell.owner = Cell.Owner.EMPTY
-        start_cell.has_dvonn_ring = False
 
         # Check for components not connected to a red piece
         state.board.remove_isolated_rings()
@@ -161,7 +160,7 @@ class DvonnGame(Game):
             cell.num_white_rings = 0
             player.num_dvonn_rings -= 1
             cell.owner = Cell.Owner.RED
-            cell.has_dvonn_ring = True
+            cell.num_dvonn_rings = 1
         else:
             player.num_player_rings -= 1
             if state.current_player == 1:

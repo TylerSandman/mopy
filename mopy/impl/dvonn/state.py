@@ -56,15 +56,18 @@ class Cell(object):
         self.c = c
         self.num_white_rings = 0
         self.num_black_rings = 0
+        self.num_dvonn_rings = 0
         self.owner = Cell.Owner.EMPTY
-        self.has_dvonn_ring = False
 
     @property
     def num_rings(self):
-        tot = self.num_white_rings + self.num_black_rings
-        if self.has_dvonn_ring:
-            tot += 1
-        return tot
+        player_rings = self.num_white_rings + self.num_black_rings
+        special_rings = self.num_dvonn_rings
+        return player_rings + special_rings
+
+    @property
+    def has_dvonn_ring(self):
+        return self.num_dvonn_rings > 0
 
     def __repr__(self):
         return str((self.r, self.c))
@@ -208,7 +211,7 @@ class Board(object):
         cell.owner = Cell.Owner.EMPTY
         cell.num_white_rings = 0
         cell.num_black_rings = 0
-        cell.has_dvonn_ring = False
+        cell.num_dvonn_rings = 0
         neighbours = cell.grid_neighbour_positions()
 
         for n_x, n_y in neighbours:
