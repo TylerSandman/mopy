@@ -18,5 +18,5 @@ def win_loss_ratio(node, winner):
             game which is currently being backpropagated up the tree.
     """
     node.total_games += 1
-    if node.state.current_player == winner:
+    if node.state.current_player != winner:
         node.won_games += 1
