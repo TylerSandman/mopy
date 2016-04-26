@@ -29,7 +29,7 @@ def full_state(new_state):
     # Place the red rings
     for x, y in [(2, 0), (3, 5), (0, 9)]:
         grid[x][y].owner = Cell.Owner.RED
-        grid[x][y].has_dvonn_ring = True
+        grid[x][y].num_dvonn_rings = 1
 
     for n in range(2):
         full_state.players[n].num_player_rings = 0
@@ -60,7 +60,7 @@ def test_ring_removal(full_state):
         cell.num_white_rings = 0
         cell.num_black_rings = 0
         cell.owner = Cell.Owner.EMPTY
-        cell.has_dvonn_ring = False
+        cell.num_dvonn_rings = 0
 
     # Remove the newly isolated group of rings
     visited = [[False for cell in row] for row in board.grid]
@@ -71,7 +71,7 @@ def test_ring_removal(full_state):
         assert cell.owner == Cell.Owner.EMPTY
         assert cell.num_white_rings == 0
         assert cell.num_black_rings == 0
-        assert not cell.has_dvonn_ring
+        assert cell.num_dvonn_rings == 0
 
 
 @pytest.mark.parametrize("test_cell, expected", [
